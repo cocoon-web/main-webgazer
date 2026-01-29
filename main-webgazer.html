@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Instituto EDNA / El Pez Volador - Protocolo MAIN Eyetracking (WebGazer)</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; background-color: #f4f4f4; }
+        #videoContainer { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        #estado-mensaje { margin-top: 20px; color: #333; }
+        .calibration-point {
+            width: 25px; height: 25px; background-color: red; border-radius: 50%;
+            position: absolute; cursor: pointer; z-index: 1000; border: 2px solid white;
+        }
+        #startButton { 
+            padding: 15px 30px; font-size: 18px; cursor: pointer; 
+            background-color: #007bff; color: white; border: none; border-radius: 5px;
+            margin-top: 20%;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 id="estado-mensaje">Paso 1: Presiona INICIAR</h2>
+    <button id="startButton" onclick="iniciarExperimento()">INICIAR RECOLECCIÓN</button>
+
+    <div id="calibracion-container" style="display:none;"></div>
+    
+    <div id="videoContainer">
+        <video id="lecturaVideo" width="1000" preload="auto">
+            <source src="VIDEO CALIBRAR.mp4" type="video/mp4"> 
+            Tu navegador no soporta el video.
+        </video>
+    </div>
+
+    <script src="webgazer.js"></script>
+    <script>
+        const videoElement = document.getElementById('lecturaVideo');
+        const startButton = document.getElementById('startButton');
+        const mensajeElement = document.getElementById('estado-mensaje');
+        const calibContainer = document.getElementById('calibracion-container');
+        
+        let webgazerData = []; 
+        let isCalibrating = false;
+        let participantID = "PILOTO_GENERICO";
+
+        const calibrationPoints = [
+            [10, 10], [50, 10], [90, 10],
+            [10, 50], [50, 50], [90, 50],
+            [10, 90], [50, 90], [90, 90]
+        ];
+        let currentPointIndex = 0;
+        let calibrationClicks = 0;
+
+        function iniciarExperimento() {
+            // Pedir ID para el nombre del archivo final
+            const inputID = prompt("Ingrese el ID del Participante (Ej: SAL-001-GATO):", "SAL-001");
+            if (inputID) participantID = inputID;
+
+            startButton.style.display = 'none';
+            mensajeElement.innerText = "Paso 2: Calibración. Mira fijamente el punto rojo y haz clic 5 veces.";
+            
+            webgazer.setGazeListener(function(data, elapsedTime) {
+                if (data == null || isCalibrating) return;
+                
+                webgazerData.push({
+                    t: elapsedTime,
+                    x: data.x,
+                    y: data.y,
+                });
+            }).begin();
+
+            // Mostrar preview de cámara para asegurar posición (opcional, ayuda al investigador)
+            webgazer.showVideoPreview(true).showPredictionPoints(false);
+
+            isCalibrating = true;
+            calibContainer.style.display = 'block';
+            createCalibrationPoint(currentPointIndex);
+        }
+
+        function createCalibrationPoint(index) {
+            calibContainer.innerHTML = ''; // Limpiar anterior
+            const coords = calibrationPoints[index];
+            const point = document.createElement('div');
+            point.classList.add('calibration-point');
+            point.style.left = `${coords[0]}%`;
+            point.style.top = `${coords[1]}%`;
+            
+            point.onclick = function(event) {
+                // ESTA ES LA CLAVE: Entrenar el modelo con la posición del clic
+                webgazer.recordScreenClick(event.clientX, event.clientY);
+                
+                calibrationClicks++;
+                this.style.opacity = 1 - (calibrationClicks * 0.15); // Feedback visual
+                
+                if (calibrationClicks >= 5) {
+                    calibrationClicks = 0;
+                    currentPointIndex++;
+                    if (currentPointIndex < calibrationPoints.length) {
+                        createCalibrationPoint(currentPointIndex);
+                    } else {
+                        terminarCalibracion();
+                    }
+                }
+            };
+            calibContainer.appendChild(point);
+        }
+
+        function terminarCalibracion() {
+            isCalibrating = false;
+            calibContainer.style.display = 'none';
+            webgazer.showVideoPreview(false); // Ocultar cámara para no distraer
+            
+            mensajeElement.innerText = "Paso 3: Iniciando video del MAIN...";
+            document.getElementById('videoContainer').style.display = 'block';
+            
+            setTimeout(() => {
+                videoElement.play();
+            }, 1000);
+        }
+
+        videoElement.onended = function() {
+            webgazer.pause(); // Detener el listener
+            mensajeElement.innerText = "¡Finalizado! Procesando descarga...";
+            guardarDatosLocales(webgazerData, `${participantID}_webgazer_raw.csv`);
+        };
+
+        function guardarDatosLocales(dataArray, filename) {
+            if (dataArray.length === 0) {
+                alert("Error: No se registraron datos de mirada.");
+                return;
+            }
+            const headers = "tiempo_ms,mirada_x_px,mirada_y_px";
+            const csvRows = dataArray.map(row => `${row.t},${row.x},${row.y}`);
+            const csvString = [headers, ...csvRows].join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.click();
+        }
+    </script>
+</body>
+</html>
