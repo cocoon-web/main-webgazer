@@ -10,15 +10,15 @@
 
 This repository contains the source code and implementation guidelines for a neuro-affirmative and intercultural adaptation of the **Multilingual Assessment Instrument for Narratives (MAIN)** using `WebGazer.js`.
 
-### 🔍 What is MAIN?
+### What is MAIN?
 The **Multilingual Assessment Instrument for Narratives (MAIN)** is a standardized tool designed to assess narrative skills in multilingual children, focusing on both comprehension and production across different languages and cultural contexts.
 
 
 
-### 🎯 Project Overview
+### Project Overview
 This project focuses on analyzing visual scanning patterns during narrative elicitation. Our goal is to bridge the gap between clinical assessment and cultural context, exploring how orality-centered backgrounds influence narrative processing through a neuro-affirmative lens.
 
-### 🚀 Features
+### Features
 * **Web-based Implementation:** Local setup using `WebGazer.js` for low-cost, scalable eye-tracking.
 * **Neuro-Affirmative Design:** Optimized calibration and recording flows specifically designed for neurodivergent populations.
 * **Dialectal Adaptation:** Argentinean Spanish version (including *voseo*) authorized by the MAIN original authors.
@@ -26,13 +26,13 @@ This project focuses on analyzing visual scanning patterns during narrative elic
 
 
 
-### 🛠 Getting Started
+### Getting Started
 1.  **Clone** the repository.
 2.  **Run a local server**: `python -m http.server 8000`.
 3.  **Open** `index.html` in a webcam-enabled browser.
 4.  **Follow** the 9-point calibration protocol (5 clicks per point).
 
-### 📜 Citation
+### Citation
 If you use this source code or protocol, please cite:
 > **Ruiz-Danegger, C. (2026).** *Visual Scanning Patterns in Narrative Elicitation: A Web-based Eye-tracking Adaptation of the MAIN for Argentinean Spanish from Neuro-Affirmative and Intercultural Lens*. Fundación El Pez Volador / Cerena - Instituto EDNA.
 
