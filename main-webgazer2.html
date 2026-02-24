@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instituto EDNA / El Pez Volador - Protocolo MAIN Eyetracking (WebGazer)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            overflow: hidden;
+        }
+        h2 { margin: 20px 0; color: #333; }
+        #startButton {
+            padding: 15px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin: 40px 0;
+        }
+        #main-slideshow {
+            display: none;          /* Oculto hasta después de calibración */
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 70vh;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;    /* Mantiene proporciones sin distorsión */
+        }
+        .calibration-point {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            cursor: pointer;
+            z-index: 1000;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #calibracion-container {
+            position: fixed;
+            inset: 0;
+            display: none;
+            background: rgba(0,0,0,0.1);
+        }
+        #estado-mensaje {
+            font-size: 1.3em;
+            margin: 20px;
+            min-height: 40px;
+        }
+        #stopButton {
+            display: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            margin: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 id="estado-mensaje">Paso 1: Presiona INICIAR</h2>
+    <button id="startButton" onclick="iniciarExperimento()">INICIAR RECOLECCIÓN</button>
+    <button id="stopButton" onclick="detenerExperimento()">DETENER Y GUARDAR</button>
+
+    <div id="calibracion-container"></div>
+
+    <!-- Swiper slideshow (MAIN - historia Cat como ejemplo) -->
+    <div class="swiper mySwiper" id="main-slideshow">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide"><img src="main_img/cat-picture1.png" alt="Picture 1: Setting"></div>
+        <div class="swiper-slide"><img src="main_img/cat-picture2.png" alt="Picture 2: Initiating Event"></div>
+        <div class="swiper-slide"><img src="main_img/cat-picture3.png" alt="Picture 3: Goal Attempt"></div>
+        <div class="swiper-slide"><img src="main_img/cat-picture4.png" alt="Picture 4: Attempt"></div>
+        <div class="swiper-slide"><img src="main_img/cat-picture5.png" alt="Picture 5: Complication"></div>
+        <div class="swiper-slide"><img src="main_img/cat-picture6.png" alt="Picture 6: Resolution"></div>
+    </div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-pagination"></div>
+</div>
+
+    <!-- Scripts al final para mejor performance -->
+    <script src="webgazer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        // Variables globales
+        let webgazerData = [];
+        let slideChanges = [];          // Para registrar cambios de picture
+        let mediaRecorder;
+        let audioChunks = [];
+        let isCalibrating = false;
+        let participantID = "PILOTO";
+        const calibrationPoints = [
+            [10,10], [50,10], [90,10],
+            [10,50], [50,50], [90,50],
+            [10,90], [50,90], [90,90]
+        ];
+        let currentPointIndex = 0;
+        let calibrationClicks = 0;
+
+        const mensaje = document.getElementById('estado-mensaje');
+        const startBtn = document.getElementById('startButton');
+        const stopBtn = document.getElementById('stopButton');
+        const calibContainer = document.getElementById('calibracion-container');
+        const slideshow = document.getElementById('main-slideshow');
+
+        // Inicializar Swiper (manual por defecto)
+        const swiper = new Swiper('.mySwiper', {
+            direction: 'horizontal',
+            loop: false,
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            pagination: { el: '.swiper-pagination', clickable: true },
+            keyboard: { enabled: true },
+            // autoplay: { delay: 15000, disableOnInteraction: false } // descomentar si querés semi-auto
+        });
+
+        // Registrar cambio de slide con timestamp
+        swiper.on('slideChange', () => {
+            const now = Date.now();
+            slideChanges.push({ time: now, picture: swiper.activeIndex + 1 });
+            console.log(`Slide cambiado a picture ${swiper.activeIndex + 1} a los ${now}ms`);
+        });
+
+        async function iniciarExperimento() {
+            const inputID = prompt("ID del participante (ej: SAL-001-GATO):", "SAL-001");
+            if (inputID) participantID = inputID.trim();
+
+            startBtn.style.display = 'none';
+            mensaje.innerText = "Paso 2: Calibración – Mira el punto rojo y haz clic 5 veces en cada uno.";
+
+            // Iniciar WebGazer
+            await webgazer.setGazeListener((data, elapsedTime) => {
+                if (data && !isCalibrating) {
+                    webgazerData.push({ t: elapsedTime, x: data.x, y: data.y });
+                }
+            }).begin();
+
+            webgazer.showVideoPreview(true).showPredictionPoints(false);
+
+            isCalibrating = true;
+            calibContainer.style.display = 'block';
+            createCalibrationPoint(currentPointIndex);
+        }
+
+        function createCalibrationPoint(index) {
+            calibContainer.innerHTML = '';
+            const [left, top] = calibrationPoints[index];
+            const point = document.createElement('div');
+            point.className = 'calibration-point';
+            point.style.left = `${left}%`;
+            point.style.top = `${top}%`;
+
+            point.onclick = (e) => {
+                webgazer.recordScreenClick(e.clientX, e.clientY);
+                calibrationClicks++;
+                point.style.opacity = 1 - (calibrationClicks * 0.18);
+
+                if (calibrationClicks >= 5) {
+                    calibrationClicks = 0;
+                    currentPointIndex++;
+                    if (currentPointIndex < calibrationPoints.length) {
+                        createCalibrationPoint(currentPointIndex);
+                    } else {
+                        terminarCalibracion();
+                    }
+                }
+            };
+
+            calibContainer.appendChild(point);
+        }
+
+        function terminarCalibracion() {
+            isCalibrating = false;
+            calibContainer.style.display = 'none';
+            webgazer.showVideoPreview(false);
+
+            mensaje.innerText = "Paso 3: Mirá las imágenes y contame la historia con tus palabras...";
+            slideshow.style.display = 'block';
+            swiper.slideTo(0); // Volver al principio
+
+            // Iniciar grabación de audio
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.start();
+                    console.log("Grabación de audio iniciada");
+                })
+                .catch(err => console.error("Error al acceder al micrófono:", err));
+
+            stopBtn.style.display = 'inline-block';
+        }
+
+        function detenerExperimento() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioLink = document.createElement('a');
+                    audioLink.href = audioUrl;
+                    audioLink.download = `${participantID}_narracion.webm`;
+                    audioLink.click();
+                    audioChunks = [];
+                };
+            }
+
+            webgazer.pause();
+            mensaje.innerText = "¡Finalizado! Descargando datos...";
+
+            // Guardar gaze
+            guardarCSV(webgazerData, `${participantID}_gaze.csv`, "tiempo_ms,mirada_x_px,mirada_y_px");
+
+            // Guardar cambios de slide
+            guardarCSV(slideChanges, `${participantID}_slides.csv`, "tiempo_ms,picture");
+
+            // Reset para nueva prueba (opcional)
+            setTimeout(() => location.reload(), 3000);
+        }
+
+        function guardarCSV(dataArray, filename, headers) {
+            if (dataArray.length === 0) return alert("No hay datos para guardar.");
+            const rows = dataArray.map(row => Object.values(row).join(','));
+            const csv = [headers, ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
