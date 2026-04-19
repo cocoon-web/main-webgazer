@@ -1,35 +1,53 @@
 # Protocolo MAIN + WebGazer v3.1
-**Desarrollo:** Constanza Ruiz-Danegger, PhD, Fundación El Pez Volador/ Cerena.
-**Propósito:** Evaluación narrativa sincronizada con seguimiento ocular de bajo costo.
+**Desarrollo:** Dra. Constanza Ruiz-Danegger (Fundación El Pez Volador / Cerena)
+**Propósito:** Seguimiento ocular (eye-tracking) de bajo costo y registro de narrativa sincronizada.
+
+---
+
+## 📂 Estructura de la Carpeta `MAIN_v3.1/`
+
+Para garantizar el funcionamiento **offline** y la integridad del protocolo, la carpeta debe contener:
+
+* **`index.html`**: Archivo principal de la aplicación (Lógica de interfaz y sincronización).
+* **`webgazer.js`**: Motor de machine learning para el seguimiento ocular (debe estar en la raíz).
+* **`README.md`**: Este manual técnico.
+* **`main_img/`**: Carpeta con los estímulos visuales (láminas de la historia MAIN).
+* **`libs/`**: *(Opcional)* Archivos locales de Swiper.js para uso 100% sin internet.
+
+---
 
 ## 1. Requisitos de Uso
-* **Navegador:** Chrome o Edge (recomendado).
-* **Hardware:** Cámara web frontal y micrófono integrados.
-* **Entorno:** Iluminación uniforme sobre el rostro del participante; evitar fuentes de luz intensas detrás (ventanas).
-* **Archivos Locales:** El sistema funciona **offline** siempre que los archivos `.js` y las imágenes estén en la misma ruta.
+* **Navegador:** Chrome o Edge (altamente recomendado).
+* **Hardware:** Cámara web frontal y micrófono integrado.
+* **Entorno:** Iluminación uniforme sobre el rostro del participante. Evitar fuentes de luz intensas detrás del sujeto (ej. ventanas).
+* **Conectividad:** Funciona **offline** una vez descargada la carpeta.
+
+---
 
 ## 2. Instrucciones de Operación
-1.  **Inicio:** Abrir `index.html`. Ingresar el ID del participante (ej. `SAL_001`).
-2.  **Calibración:** El participante debe mirar y hacer clic 5 veces en cada uno de los 9 puntos rojos. Esto entrena el modelo de IA para su fisonomía y posición.
-3.  **Narrativa:** Al finalizar la calibración, aparecerán las láminas de MAIN. El participante debe relatar la historia mientras navega con las flechas o el teclado.
-4.  **Cierre:** Presionar **"FINALIZAR Y GUARDAR"**. El sistema descargará automáticamente dos archivos.
+1. **Configuración:** Abrir `index.html`. Ingresar el ID del participante (ej. `SAL_001`).
+2. **Calibración:** El participante debe mirar y hacer clic en cada uno de los 9 puntos rojos (5 clics por punto). Esto entrena el modelo de IA para su posición específica.
+3. **Tarea Narrativa:** Una vez calibrado, aparecerán las láminas de MAIN. El participante narra la historia mientras navega usando las flechas o los botones en pantalla.
+4. **Finalización:** Hacer clic en **"FINALIZAR Y GUARDAR"**. El navegador descargará automáticamente dos archivos.
 
-## 3. Especificaciones Técnicas (Data Output)
+---
+
+## 3. Especificaciones Técnicas (Salida de Datos)
 
 ### A. Dataset de Eyetracking (`ID_DATOS_COMPLETOS.csv`)
-Archivo CSV con frecuencia de muestreo de ~20Hz.
+Archivo CSV con una frecuencia de muestreo de aproximadamente ~20Hz.
 * `tiempo_ms`: Tiempo relativo desde el inicio de WebGazer.
-* `x_px` / `y_px`: Coordenadas de mirada en la pantalla.
-* `lamina_id`: Identificador de la imagen de MAIN que se estaba visualizando (1 al 6). *Crucial para análisis de AOIs.*
+* `x_px` / `y_px`: Coordenadas de la mirada en la pantalla.
+* `lamina_id`: Identificador de la lámina de MAIN que se estaba viendo (1 a 6). *Crucial para el análisis automatizado de Áreas de Interés (AOI).*
 
 ### B. Registro de Audio (`ID_NARRATIVA.webm`)
 * **Formato:** WebM (Codec Opus).
-* **Sincronía:** El inicio del audio coincide con el inicio de la visualización de la primera lámina.
+* **Sincronización:** El inicio del audio está perfectamente alineado con la visualización de la primera lámina.
 
 ### C. Herramienta de Revisión (Heatmap)
-El botón "REVISAR HEATMAP" permite visualizar sobre el DOM actual la densidad de fijaciones por lámina. Esto es para control de calidad inmediato en territorio; no reemplaza el análisis estadístico posterior de los datos crudos.
+El botón **"REVISAR HEATMAP"** permite a los investigadores superponer la densidad de fijaciones por lámina sobre la interfaz. Diseñado para un **control de calidad inmediato en territorio**.
 
 ---
 
 ## 4. Nota de Contexto
-Este desarrollo busca democratizar el acceso a herramientas de eyetracking en territorios de difícil acceso, integrando rigor científico con dispositivos de uso cotidiano. 
+Este desarrollo busca democratizar el acceso a herramientas de investigación de alta gama en territorios remotos, fusionando el rigor científico con hardware de uso cotidiano.
