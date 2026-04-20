@@ -34,7 +34,7 @@ This project focuses on analyzing visual scanning patterns during narrative elic
 
 ### Citation
 If you use this source code or protocol, please cite:
-> **Ruiz-Danegger, C. & Gagarina, N. (2026).** *Visual Scanning Patterns in Narrative Elicitation: A Web-based Eye-tracking Adaptation of the MAIN for Argentinean Spanish from Neuro-Affirmative and Intercultural Lens*. Fundación El Pez Volador / Cerena - Instituto EDNA - ZAS (Berlin).
+> **Ruiz-Danegger, C. (2026).** *Visual Scanning Patterns in Narrative Elicitation: A Web-based Eye-tracking Adaptation of the MAIN for Argentinean Spanish from Neuro-Affirmative and Intercultural Lens*. Fundación El Pez Volador / Cerena - Instituto EDNA - ZAS (Berlin).
 
 *Based on the MAIN original work by Gagarina, N., et al. (2012/2019), with authorization.*
 
