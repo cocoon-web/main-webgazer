@@ -30,9 +30,16 @@ Si utilizas este toolkit en tu investigación, por favor cita el preprint oficia
 > **Ruiz-Danegger, C. (2026).** *MAIN-WebGazer: An Open-Source, Neuro-Affirmative Web-Based Eye-Tracking Adaptation of the MAIN for Equitable Narrative Assessment.* PsyArXiv. [Preprint]. Disponible en: [https://github.com/cocoon-web/main-webgazer](https://github.com/cocoon-web/main-webgazer)
 
 ## Contribuye
-Tu apoyo nos permite seguir desarrollando tecnología para la autonomía cognitiva:
+Tu apoyo nos permite seguir desarrollando tecnología para promover un autismo floreciente:
 * 🇦🇷 **Español:** [Fundación El Pez Volador - Contribuir](https://elpezvolador.org/#contribuir)
 * 🌎 **English:** [El Pez Volador Foundation - Contribute](https://elpezvolador.org/en/#contribuir)
+
+* <p align="center">
+  #SomosGenteAutista
+</p>
+
+<p align="center">🌿 <i>Por favor, considera el medio ambiente antes de imprimir.</i></p>
+
 
 ---
 
@@ -54,7 +61,7 @@ Please use the following citation for this work:
 ---
 
 <p align="center">
-  #SomosGenteAutista #ActuallyAutistic
+  #ActuallyAutistic
 </p>
 
-<p align="center">🌿 <i>Por favor, considera el medio ambiente antes de imprimir. / Please consider the environment before printing.</i></p>
+<p align="center">🌿 <i>Please consider the environment before printing.</i></p>
