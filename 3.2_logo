@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAIN-WebGazer v3.2 - Protocolo de Narrativa + Eye-tracking</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f0f2f5; }
+        
+        /* Contenedor del Logo de MAIN */
+        .header-logo { margin-bottom: 15px; }
+        .header-logo img { max-width: 180px; height: auto; }
+
+        #status { font-size: 1.2em; min-height: 50px; margin: 15px auto; max-width: 800px; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn { padding: 15px 30px; font-size: 16px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        #startBtn { background: #27ae60; color: white; }
+        #stopBtn { background: #e74c3c; color: white; display: none; }
+        
+        /* Contenedor de las imágenes (Slideshow) */
+        #main-slideshow { display: none; max-width: 1000px; margin: 20px auto; border: 5px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
+        .swiper-slide img { width: 100%; height: auto; display: block; object-fit: contain; }
+        
+        /* Puntos de Calibración Neuro-afirmativos */
+        .calib-point {
+            position: fixed; width: 28px; height: 28px; background: #e74c3c;
+            border-radius: 50%; border: 3px solid white; cursor: pointer; z-index: 4000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        /* Canvas del Heatmap */
+        #heatmap-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div class="header-logo">
+        <img src="main-logo.jpg" alt="Multilingual Assessment Instrument for Narratives">
+    </div>
+
+    <h1>MAIN-WebGazer: Social Cognition Biometrics</h1>
+    <div id="status">Presione INICIAR para comenzar el protocolo neuro-afirmativo</div>
+
+    <button id="startBtn" class="btn" onclick="startProtocol()">INICIAR PROTOCOLO</button>
+    <button id="stopBtn" class="btn" onclick="endProtocol()">FINALIZAR Y EXPORTAR</button>
+
+    <div id="main-slideshow" class="swiper">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="main_img/cat-picture1.png" alt="S1"></div>
+            <div class="swiper-slide"><img src="main_img/cat-picture2.png" alt="S2"></div>
+            <div class="swiper-slide"><img src="main_img/cat-picture3.png" alt="S3"></div>
+            <div class="swiper-slide"><img src="main_img/cat-picture4.png" alt="S4"></div>
+            <div class="swiper-slide"><img src="main_img/cat-picture5.png" alt="S5"></div>
+            <div class="swiper-slide"><img src="main_img/cat-picture6.png" alt="S6"></div>
+        </div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <canvas id="heatmap-canvas"></canvas>
+    </div>
+
+    <script src="webgazer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        let participantID, webgazerData = [], audioChunks = [], mediaRecorder;
+        let pointsToCalibrate = 9, clicksPerPoint = 5;
+        const statusDiv = document.getElementById('status');
+
+        async function startProtocol() {
+            participantID = prompt("ID Participante:", "SUBJ_" + Date.now().toString().slice(-4)) || "PILOT";
+            document.getElementById('startBtn').style.display = 'none';
+            
+            try {
+                // 1. Iniciar Captura de Audio para análisis Gaze-IST
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    saveFile(blob, `${participantID}_audio.webm`, 'audio/webm');
+                };
+                mediaRecorder.start();
+
+                // 2. Iniciar WebGazer (Local)
+                await webgazer.setGazeListener((data) => {
+                    if (data) {
+                        webgazerData.push({
+                            t: Date.now(),
+                            x: Math.round(data.x),
+                            y: Math.round(data.y),
+                            slide: (window.swiper ? swiper.activeIndex + 1 : 0)
+                        });
+                    }
+                }).begin();
+                
+                webgazer.showVideoPreview(true).showPredictionPoints(true);
+                runCalibration();
+            } catch (err) {
+                statusDiv.textContent = "Error al acceder a periféricos: " + err;
+            }
+        }
+
+        // Protocolo de Calibración de 9 puntos (Neuro-afirmativo)
+        function runCalibration() {
+            statusDiv.textContent = "Calibración: Haz clic 5 veces en cada punto rojo";
+            const coords = [
+                [10,10], [50,10], [90,10],
+                [10,50], [50,50], [90,50],
+                [10,90], [50,90], [90,90]
+            ];
+            
+            let currentIdx = 0;
+            const createPoint = (idx) => {
+                if (idx >= coords.length) {
+                    finishCalibration();
+                    return;
+                }
+                const p = document.createElement('div');
+                p.className = 'calib-point';
+                p.style.left = coords[idx][0] + '%';
+                p.style.top = coords[idx][1] + '%';
+                let clicks = 0;
+                p.onclick = () => {
+                    clicks++;
