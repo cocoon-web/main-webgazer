@@ -1,42 +1,42 @@
 <div align="center">
-  <h1>Web-based Eye-tracking for MAIN (Argentinean Spanish)</h1>
-  <h3><b>Prof. Constanza Ruiz-Danegger, PhD</b></h3>
-  <p><b>Instituto EDNA</b> - Educación, Desarrollo, Neurodiversidad y Autismo</p>
-  <p>Fundación El Pez Volador / Autism and Neurodiversity Centre - <b>Cerena</b></p>
+  <h1>MAIN-WebGazer v3.2</h1>
+  <h3><b>Constanza Ruiz-Danegger, PhD</b></h3>
+  <p>Executive Director, <b>Fundación El Pez Volador</b></p>
+  <p>Centro de Referencia <b>Cerena</b> | Autism and Neurodiversity Centre</p>
   <a href="https://elpezvolador.org">🌐 elpezvolador.org</a>
 </div>
 
 ---
 
-This repository contains the source code and implementation guidelines for a neuro-affirmative and intercultural adaptation of the **Multilingual Assessment Instrument for Narratives (MAIN)** using `WebGazer.js`.
+## Overview
+**MAIN-WebGazer** es un toolkit híbrido de código abierto que integra el **Multilingual Assessment Instrument for Narratives (MAIN)** con seguimiento ocular (eye-tracking) basado en webcams mediante `WebGazer.js`. 
 
-### What is MAIN?
-The **Multilingual Assessment Instrument for Narratives (MAIN)** is a standardized tool designed to assess narrative skills in multilingual children, focusing on both comprehension and production across different languages and cultural contexts.
+Este proyecto, lanzado como contribución por el 20.º aniversario del **Proyecto El Pez Volador (2006-2026)**, operacionaliza la recursión implícito-explícita de la cognición social desde una lente neuro-afirmativa e intercultural.
 
+## Características Principales
+* **Biometría Accesible:** Eye-tracking de alta fidelidad utilizando webcams estándar, eliminando la necesidad de hardware costoso.
+* **Disyunción Gaze-IST:** Un nuevo marcador biométrico que cuantifica la brecha entre los Términos de Estado Interno (IST) verbales y la atención visual a Áreas de Interés (AOI) sociales.
+* **Visualización en Tiempo Real:** Generador de **Heatmaps** integrado para revisión inmediata post-sesión.
+* **Captura Multimodal:** Grabación de audio sincronizada para el análisis de la narrativa y el cálculo del costo cognitivo del camuflaje lingüístico.
+* **Diseño Neuro-afirmativo:** Protocolo de calibración de 9 puntos optimizado para perfiles sensoriales y tiempos de procesamiento neurodivergentes.
+* **Adaptación Argentina:** Implementación completa de la versión de MAIN para Argentina, incluyendo el uso de *voseo* y léxico situado.
 
+## Guía de Inicio Rápido
+1.  **Clonar** el repositorio.
+2.  **Descargar** `webgazer.js` y colocarlo en la raíz del proyecto.
+3.  **Ejecutar un servidor local**: `python -m http.server 8000`.
+4.  **Abrir** `index.html` en un navegador con cámara habilitada.
+5.  **Seguir** el protocolo de calibración (5 clics por cada uno de los 9 puntos).
 
-### Project Overview
-This project focuses on analyzing visual scanning patterns during narrative elicitation. Our goal is to bridge the gap between clinical assessment and cultural context, exploring how orality-centered backgrounds influence narrative processing through a neuro-affirmative lens.
+## Estructura de Datos
+Al finalizar cada sesión, el toolkit exporta automáticamente:
+* `SUBJ_ID_gaze.csv`: Datos de timestamp, coordenadas (x, y) y slide activo.
+* `SUBJ_ID_audio.webm`: Registro de audio de la narración para análisis lingüístico.
 
-### Features
-* **Web-based Implementation:** Local setup using `WebGazer.js` for low-cost, scalable eye-tracking.
-* **Neuro-Affirmative Design:** Optimized calibration and recording flows specifically designed for neurodivergent populations.
-* **Dialectal Adaptation:** Argentinean Spanish version (including *voseo*) authorized by the MAIN original authors.
-* **Data Integration:** Pre-configured for merging eye-tracking raw data with **KoboToolbox** (BDI, CAST-10, and MAIN scores) via Python.
+## Citación
+---
 
-
-
-### Getting Started
-1.  **Clone** the repository.
-2.  **Run a local server**: `python -m http.server 8000`.
-3.  **Open** `index.html` in a webcam-enabled browser.
-4.  **Follow** the 9-point calibration protocol (5 clicks per point).
-
-### Citation
-If you use this source code or protocol, please cite:
-> **Ruiz-Danegger, C. (2026).** *Visual Scanning Patterns in Narrative Elicitation: A Web-based Eye-tracking Adaptation of the MAIN for Argentinean Spanish from Neuro-Affirmative and Intercultural Lens*. Fundación El Pez Volador / Cerena - Instituto EDNA - ZAS (Berlin).
-
-*Based on the MAIN original work by Gagarina, N., et al. (2012/2019), with authorization.*
+*Este proyecto cuenta con la autorización y registro en MAIN Worldwide Network (ZAS, Berlín).*
 
 ---
-<p align="center">🌿 <i>Please consider the environment before printing.</i></p>
+<p align="center">🌿 <i>Por favor, considera el medio ambiente antes de imprimir.</i></p>
