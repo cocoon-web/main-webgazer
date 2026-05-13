@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MAIN-WebGazer v3.6 - Fix MediaPipe</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 20px; background: #f8f9fa; color: #2c3e50; }
+        .header-container { margin-bottom: 25px; }
+        #main-logo-img { max-width: 200px; height: auto; display: block; margin: 0 auto; border-radius: 8px; }
+        #status { font-size: 1.1em; min-height: 60px; margin: 20px auto; max-width: 750px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn { padding: 18px 35px; font-size: 18px; margin: 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; background: #27ae60; color: white; }
+        #stopBtn { background: #e74c3c; display: none; }
+        #webgazerVideoContainer { display: none !important; }
+        #main-slideshow { display: none; max-width: 850px; margin: 25px auto; border: 8px solid white; position: relative; }
+        .calib-point { position: fixed; width: 35px; height: 35px; background: #e74c3c; border-radius: 50%; border: 4px solid white; cursor: pointer; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+    <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+        <img src="main_logo.jpg" alt="Logo MAIN" style="height: 100px;">
+        
+        <img src="aura-eye-logo.png" alt="Logo Aura Eye" style="height: 100px;">
+    </div>
+
+    <h2>MAIN-WebGazer by Aura EYE™: Social Cognition Biometrics</h2>
+    <div id="status">Cargando inteligencia artificial... por favor espere.</div>
+
+    <button id="startBtn" class="btn" onclick="preStart()" style="display:none;">INICIAR PROTOCOLO</button>
+    <button id="stopBtn" class="btn" onclick="endProtocol()">FINALIZAR Y EXPORTAR</button>
+
+    <div id="main-slideshow" class="swiper">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="main-img/cat-picture1.png"></div>
+            <div class="swiper-slide"><img src="main-img/cat-picture2.png"></div>
+            <div class="swiper-slide"><img src="main-img/cat-picture3.png"></div>
+            <div class="swiper-slide"><img src="main-img/cat-picture4.png"></div>
+            <div class="swiper-slide"><img src="main-img/cat-picture5.png"></div>
+            <div class="swiper-slide"><img src="main-img/cat-picture6.png"></div>
+        </div>
+        <div class="swiper-button-next"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/webgazer@2.1.0/dist/webgazer.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        let participantID, gazeData = [], audioChunks = [], recorder;
+
+        window.onload = function() {
+            if (typeof webgazer !== 'undefined') {
+                document.getElementById('status').innerHTML = "<b>¡Módulos cargados!</b><br>Presione INICIAR.";
+                document.getElementById('startBtn').style.display = 'inline-block';
+            }
+        };
+
+        async function preStart() {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                startProtocol();
+            } catch (err) {
+                alert("Error: Activa la cámara en el icono del candado.");
+            }
+        }
+
+        async function startProtocol() {
+            participantID = prompt("ID Participante:", "SUBJ_" + Date.now().toString().slice(-4));
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('status').innerText = "Sincronizando ojos... mira a la cámara.";
+
+            try {
+                // Iniciar Audio
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                recorder = new MediaRecorder(stream);
+                recorder.ondataavailable = e => audioChunks.push(e.data);
+                recorder.onstop = () => download(new Blob(audioChunks), `${participantID}_audio.webm`);
+                recorder.start();
+
+                // CONFIGURACIÓN CRÍTICA: Forzamos a que no use archivos locales
+                await webgazer.setRegression('ridge')
+                    .setGazeListener((data, timestamp) => {
+                        if (data) gazeData.push({ t: timestamp, x: data.x, y: data.y, s: (window.smp ? smp.activeIndex + 1 : 0) });
+                    }).begin();
+
+                // Ocultar video propio para no distraer (Neuro-afirmativo)
+                webgazer.showVideoPreview(false).showPredictionPoints(true);
+                runCalibration();
+                
+            } catch (e) {
+                document.getElementById('status').innerHTML = "Error al conectar con la cámara.";
+                console.error(e);
+            }
+        }
+
+        function runCalibration() {
+            document.getElementById('status').innerHTML = "<b>Calibración:</b> Haz clic 5 veces en cada punto rojo.";
+            const points = [[10,10], [50,10], [90,10], [10,50], [50,50], [90,50], [10,90], [50,90], [90,90]];
+            let current = 0;
+            const nextPoint = (i) => {
+                if (i >= points.length) { startAssessment(); return; }
+                const p = document.createElement('div');
+                p.className = 'calib-point';
+                p.style.left = points[i][0] + '%'; p.style.top = points[i][1] + '%';
+                let c = 0;
+                p.onclick = () => {
+                    c++; p.style.opacity = 1 - (c * 0.2);
+                    if (c >= 5) { p.remove(); nextPoint(++current); }
+                };
+                document.body.appendChild(p);
+            };
+            nextPoint(0);
+        }
+
+        function startAssessment() {
+            webgazer.showPredictionPoints(false);
+            document.getElementById('main-slideshow').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            window.smp = new Swiper('.swiper', { navigation: { nextEl: '.swiper-button-next' } });
+            document.getElementById('status').innerText = "Grabando narrativa...";
+        }
+
+        function endProtocol() {
+            webgazer.pause();
+            recorder.stop();
+            const csv = "timestamp,x,y,slide\n" + gazeData.map(d => `${d.t},${d.x},${d.y},${d.s}`).join("\n");
+            download(new Blob([csv], { type: 'text/csv' }), `${participantID}_biometria.csv`);
+            document.getElementById('status').innerText = "¡Listo! Archivos descargados.";
+        }
+
+        function download(blob, name) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name; a.click();
+        }
+    </script>
+</body>
+</html>
