@@ -1,10 +1,3 @@
-Gemini
-LaTeX Cover Letter for Overleaf
-Conversación con Gemini
-esto donde va en el resto del código?
-
-
-
 async function startProtocol() {
 
     participantID = prompt("ID Participante:", "SUBJ_" + Date.now().toString().slice(-4));
